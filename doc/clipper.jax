@@ -1,0 +1,93 @@
+*clipper.txt*      無名レジスタの履歴をとる/履歴から貼り付け
+
+Author: ky
+Version: 0.1
+License: The MIT License {{{
+The MIT License
+
+Copyright (C) 2009 ky
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+}}}
+
+
+==============================================================================
+目次
+
+1.はじめに			|clipper-introduction|
+2.コマンド			|clipper-commands|
+3.キーマッピング		|clipper-key-mappings|
+4.カスタマイズ			|clipper-customizing|
+5.変更履歴			|clipper-changelog|
+
+
+==============================================================================
+1.はじめに                                              *clipper-introduction*
+
+無名レジスタの履歴をとり、貼り付けできるようにするプラグインです。
+altrepeatプラグインを導入することで|.|コマンドでも履歴をとれるようになります。
+
+altrepeatプラグイン:
+http://github.com/ky/vim-altrepeat/
+
+このプラグインはVim 7.0以上に対応しています。
+最新バージョンは以下にあります。
+http://github.com/ky/vim-clipper/
+
+
+==============================================================================
+2.コマンド                                                  *clipper-commands*
+
+:ClipperDefaultKeyMappings                        *:ClipperDefaultKeyMappings*
+		デフォルトのキーマッピングを適用します。
+
+
+==============================================================================
+3.キーマッピング                                        *clipper-key-mappings*
+
+<Plug>(clipper_stack_next)                        *<Plug>(clipper_stack_next)*
+		1つ後の履歴を選択します。
+		デフォルトキーマッピングを適用するとノーマルモードの<C-n>に
+		割り当てられます。
+
+<Plug>(clipper_stack_prev)                        *<Plug>(clipper_stack_prev)*
+		1つ前の履歴を選択します。
+		デフォルトキーマッピングを適用するとノーマルモードの<C-p>に
+		割り当てられます。
+
+多いので省略(plugin/clipper.vimを参照)。
+
+
+==============================================================================
+4.カスタマイズ                                           *clipper-customizing*
+
+g:clipper_no_default_key_mappings          *g:clipper_no_default_key_mappings*
+		値が0の場合、デフォルトのキーマッピングを適用します。
+		値が0以外の場合、デフォルトのキーマッピングを適用しません。
+
+
+==============================================================================
+5.変更履歴                                                 *clipper-changelog*
+
+0.1	2009-02-22
+	- 作成
+	
+
+==============================================================================
+ vim:tw=78:ts=8:ft=help:norl:fdm=marker:
