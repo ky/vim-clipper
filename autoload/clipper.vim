@@ -1,7 +1,7 @@
 "-----------------------------------------------------------------------------
 " clipper
 " Author: ky
-" Version: 0.1
+" Version: 0.1.1
 " License: The MIT License {{{
 " The MIT License
 "
@@ -33,13 +33,11 @@ endfunction
 
 
 function! clipper#yank_n(key)
-  let s:used_register = s:register()
+  call s:set_register()
   let cnt = (v:count == v:count1 ? v:count : '')
 
-  let reg0_save = @0
   execute 'normal! ' . cnt . s:used_register . a:key
   call clipper#auto_push()
-  let @0 = reg0_save
 
   silent! call altrepeat#set_repeat_function(
         \ 'clipper#repeat_yank_n',
@@ -51,9 +49,7 @@ endfunction
 
 
 function! clipper#repeat_yank_n(count, key)
-  if s:used_register ==# ''
-    let s:used_register = s:register()
-  endif
+  call s:update_register()
   execute 'normal! ' . (a:count ? a:count : '') . s:used_register . a:key
   call clipper#auto_push()
 endfunction
@@ -131,6 +127,45 @@ function! clipper#repeat_yank_x(count)
   endif
   execute 'normal! ' . use_reg . '.'
   call clipper#auto_push()
+endfunction
+
+
+function! clipper#yank_x_y(key)
+  let s:ve_save = &virtualedit
+  let &virtualedit = 'onemore'
+  let reselect = "\<Plug>(clipper_reselect_" .
+        \ (a:key ==# 'y' ? "char" : "line") . ")"
+  call clipper#do_operator('y')
+  call feedkeys(reselect, 'm')
+  call feedkeys(":call clipper#yank_x_y_after()\<CR>", 'n')
+  if a:key ==# 'Y' && visualmode() !=# "\<C-v>"
+    call feedkeys('0', 'n')
+  endif
+endfunction
+
+
+function! clipper#yank_x_y_after()
+  let &virtualedit = s:ve_save
+  unlet s:ve_save
+endfunction
+
+
+onoremap <silent> <Plug>(clipper_reselect_char)
+      \ :<C-u>call <SID>reselect_char()<CR>
+onoremap <silent> <Plug>(clipper_reselect_line)
+      \ :<C-u>call <SID>reselect_line(visualmode())<CR>
+
+
+function! s:reselect_char()
+  normal! gv
+endfunction
+
+
+function! s:reselect_line(visual)
+  normal! gv
+  if a:visual ==# 'v'
+    normal! V
+  endif
 endfunction
 
 
@@ -280,10 +315,11 @@ function! clipper#repeat_paste_x(count)
 endfunction
 
 
-function! clipper#do_operator(key, opfunc)
-  let &operatorfunc = a:opfunc
+function! clipper#do_operator(key)
+  let &operatorfunc = 'clipper#operator_' . a:key
   let s:operator = a:key
-  let s:used_register = s:register()
+  call s:set_register()
+  let s:view = winsaveview()
   call feedkeys(printf('%s%sg@', s:count(), s:used_register), 'n')
 endfunction
 
@@ -297,11 +333,12 @@ endfunction
 
 
 function! clipper#operator_y(optype)
-  let view = winsaveview()
-  "let save_cursor = getpos('.')
+  if !exists('s:view')
+    let s:view = winsaveview()
+  endif
   call s:operator(a:optype, 'y')
-  call winrestview(view)
-  "call setpos('.', save_cursor)
+  call winrestview(s:view)
+  unlet s:view
 endfunction
 
 
@@ -310,17 +347,32 @@ function! clipper#operator_d(optype)
 endfunction
 
 
+function! clipper#repeat_operator(count)
+  let view = winsaveview()
+  call s:update_register()
+  execute 'normal! ' . (a:count ? a:count : '') .
+        \ s:used_register . '.'
+  call winrestview(view)
+endfunction
+
+
 function! s:operator(optype, cmd)
   let selection_save = &selection
   let &selection = 'inclusive'
 
-  if s:used_register ==# ''
-    let s:used_register = s:register()
-  endif
+  call s:update_register()
   execute printf('normal! %s%s%s', s:range(a:optype), s:used_register, a:cmd)
   call clipper#auto_push()
 
   let &selection = selection_save
+
+  if a:cmd ==# 'y'
+    silent! call altrepeat#set_repeat_function(
+          \ 'clipper#repeat_operator',
+          \ 0,
+          \ v:prevcount
+          \)
+  endif
 endfunction
 
 
@@ -339,7 +391,9 @@ function! clipper#pseudo_operator(key)
   augroup ClipperOperatorGroup
     autocmd!
   augroup END
-  let s:used_register = s:register()
+
+  call s:set_register()
+
   if s:used_register ==# ''
     autocmd ClipperOperatorGroup InsertEnter * call s:insert_enter()
     autocmd ClipperOperatorGroup CursorMoved * call s:cursor_moved()
@@ -360,9 +414,7 @@ endfunction
 
 
 function! clipper#repeat_pseudo_operator(count)
-  if s:used_register ==# ''
-    let s:used_register = s:register()
-  endif
+  call s:update_register()
   execute 'normal! ' . (a:count ? a:count : '') . s:used_register . '.'
   call clipper#auto_push()
 endfunction
@@ -398,8 +450,12 @@ endfunction
 
 
 function! clipper#auto_push()
-  if v:register ==# '"' || v:register ==# ''
-    call insert(s:stack, [getreg('"'), getregtype('"')], 0)
+  if (v:register ==# '"' || v:register ==# '') && g:clipper_max_history > 0
+    if len(s:stack) >= g:clipper_max_history
+      call remove(s:stack, g:clipper_max_history -1, -1)
+    endif
+    let s = strpart(getreg('"'), 0, g:clipper_max_text_length)
+    call insert(s:stack, [s, getregtype('"')], 0)
   endif
   return ''
 endfunction
@@ -432,7 +488,7 @@ function! s:count()
 endfunction
 
 
-function! s:register()
+function! s:get_register()
   if v:register ==# '' || v:register ==# '"'
     return ''
   endif
@@ -440,16 +496,35 @@ function! s:register()
 endfunction
 
 
+function! s:set_register()
+  let s:used_register = s:get_register()
+endfunction
+
+
+function! s:update_register()
+  if s:used_register ==# ''
+    call s:set_register()
+  endif
+endfunction
+
+
 let s:operator_insert_enter = 0
 let s:operator_start = 0
 let s:stack = []
-let s:register = ''
 let s:operator = ''
 let s:stack_pos = 0
 let s:used_register = ''
 let s:changedtick = -1
 
 
+if !exists('g:clipper_max_text_length')
+  let g:clipper_max_text_length = 1048576
+endif
+
+
+if !exists('g:clipper_max_history')
+  let g:clipper_max_history = 100
+endif
 
 
 " vim: expandtab shiftwidth=2 softtabstop=2 foldmethod=marker

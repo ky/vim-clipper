@@ -1,7 +1,7 @@
 "-----------------------------------------------------------------------------
 " clipper
 " Author: ky
-" Version: 0.1
+" Version: 0.1.1
 " License: The MIT License
 " The MIT License {{{
 "
@@ -44,12 +44,15 @@ let g:loaded_clipper = 1
 
 " operator
 nnoremap <silent> <Plug>(clipper_y)
-      \ :<C-u>call clipper#do_operator('y', 'clipper#operator_y')<CR>
-onoremap <expr> <silent> <Plug>(clipper_y) clipper#linewise('y')
+      \ :<C-u>call clipper#do_operator('y')<CR>
+onoremap <expr> <silent> <Plug>(clipper_y)
+      \ clipper#linewise('y')
 nnoremap <silent> <Plug>(clipper_d)
-      \ :<C-u>call clipper#do_operator('d', 'clipper#operator_d')<CR>
-onoremap <expr> <silent> <Plug>(clipper_d) clipper#linewise('d')
-nnoremap <expr> <silent> <Plug>(clipper_c) clipper#pseudo_operator('c')
+      \ :<C-u>call clipper#do_operator('d')<CR>
+onoremap <expr> <silent> <Plug>(clipper_d)
+      \ clipper#linewise('d')
+nnoremap <expr> <silent> <Plug>(clipper_c)
+      \ clipper#pseudo_operator('c')
 
 
 " yank or delete
@@ -78,11 +81,11 @@ nnoremap <silent> <Plug>(clipper_X)
 xnoremap <silent> <Plug>(clipper_X)
       \ :<C-u>call clipper#yank_x('X')<CR>
 xnoremap <silent> <Plug>(clipper_y)
-      \ :<C-u>call clipper#yank_x('y')<CR>
+      \ :<C-u>call clipper#yank_x_y('y')<CR>
 nnoremap <silent> <Plug>(clipper_Y)
       \ :<C-u>call clipper#yank_n('Y')<CR>
 xnoremap <silent> <Plug>(clipper_Y)
-      \ :<C-u>call clipper#yank_x('Y')<CR>
+      \ :<C-u>call clipper#yank_x_y('Y')<CR>
 
 
 " delete and insert

@@ -1,7 +1,7 @@
 *clipper.txt*      無名レジスタの履歴をとる/履歴から貼り付け
 
 Author: ky
-Version: 0.1
+Version: 0.1.1
 License: The MIT License {{{
 The MIT License
 
@@ -77,6 +77,15 @@ http://github.com/ky/vim-clipper/
 ==============================================================================
 4.カスタマイズ                                           *clipper-customizing*
 
+g:clipper_max_history                                  *g:clipper_max_history*
+		履歴に残す個数を指定します。
+		デフォルト：100
+
+g:clipper_max_text_length                          *g:clipper_max_text_length*
+		履歴に保存する文字列の最大バイト数を指定します。
+		このバイト数より長い文字列は切り捨てられます。
+		デフォルト：1048576 (1MB)
+
 g:clipper_no_default_key_mappings          *g:clipper_no_default_key_mappings*
 		値が0の場合、デフォルトのキーマッピングを適用します。
 		値が0以外の場合、デフォルトのキーマッピングを適用しません。
@@ -85,8 +94,13 @@ g:clipper_no_default_key_mappings          *g:clipper_no_default_key_mappings*
 ==============================================================================
 5.変更履歴                                                 *clipper-changelog*
 
+0.1.1	2009-02-27
+	- yやYの動作を修正
+	- g:clipper_max_history追加
+	- g:clipper_max_text_length追加
+
 0.1	2009-02-22
-	- 作成
+	- 公開(テスト版)
 	
 
 ==============================================================================
