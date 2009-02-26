@@ -27,10 +27,7 @@
 " }}}
 "-----------------------------------------------------------------------------
 
-if &compatible || v:version < 700
-  finish
-endif
-if (exists('g:loaded_clipper') && g:loaded_clipper)
+if &compatible || v:version < 700 || exists('g:loaded_clipper')
   finish
 endif
 
