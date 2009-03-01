@@ -32,7 +32,13 @@ function! clipper#dump()
 endfunction
 
 
-function! clipper#yank_n(key)
+function! clipper#execute(type, key)
+  let v = s:FUNCTION_TABLE[a:type . '_' . a:key]
+  return call(v[0], v[1])
+endfunction
+
+
+function! s:yank_n(key)
   call s:set_register()
   let cnt = (v:count == v:count1 ? v:count : '')
 
@@ -55,7 +61,7 @@ function! clipper#repeat_yank_n(count, key)
 endfunction
 
 
-function! clipper#yank_s(key)
+function! s:yank_s(key)
   let reg0_save = @0
   execute "normal! gvy"
   call clipper#auto_push()
@@ -78,7 +84,7 @@ function! clipper#repeat_yank_s(count)
 endfunction
 
 
-function! clipper#yank_x(key)
+function! s:yank_x(key)
   let use_reg = ''
   if v:register ==# '' || v:register ==# '"'
     let s:used_register = ''
@@ -130,12 +136,12 @@ function! clipper#repeat_yank_x(count)
 endfunction
 
 
-function! clipper#yank_x_y(key)
+function! s:yank_x_y(key)
   let s:ve_save = &virtualedit
   let &virtualedit = 'onemore'
   let reselect = "\<Plug>(clipper_reselect_" .
         \ (a:key ==# 'y' ? "char" : "line") . ")"
-  call clipper#do_operator('y')
+  call s:do_operator('y')
   call feedkeys(reselect, 'm')
   call feedkeys(":call clipper#yank_x_y_after()\<CR>", 'n')
   if a:key ==# 'Y' && visualmode() !=# "\<C-v>"
@@ -169,7 +175,7 @@ function! s:reselect_line(visual)
 endfunction
 
 
-function! clipper#insert_n(key)
+function! s:insert_n(key)
   let dic = { 'C' : 'y$', 's' : 'yl', 'S' : 'Y' }
   if !has_key(dic, a:key)
     return
@@ -202,7 +208,7 @@ function! clipper#repeat_insert_n(count)
 endfunction
 
 
-function! clipper#insert_s(key)
+function! s:insert_s(key)
   let reg0_save = @0
   execute "normal! gvy"
   call clipper#auto_push()
@@ -225,7 +231,7 @@ function! clipper#repeat_insert_s(count)
 endfunction
 
 
-function! clipper#insert_x(key)
+function! s:insert_x(key)
   let use_reg = ''
   if v:register ==# '' || v:register ==# '"'
     if a:key =~ '\C^\u$'
@@ -267,13 +273,13 @@ function! s:setreg()
 endfunction
 
 
-function! clipper#paste_n(key)
+function! s:paste_n(key)
   call s:setreg()
   return a:key
 endfunction
 
 
-function! clipper#paste_x(key)
+function! s:paste_x(key)
   let use_reg = ''
   if v:register !=# '' && v:register !=# '"'
     let use_reg = '"' . v:register
@@ -281,12 +287,12 @@ function! clipper#paste_x(key)
   endif
   let stack_empty = empty(s:stack)
 
-  let unnamed_reg_save = @"
+  let unnamed_reg_save = @@
   let reg0_save = @0
   execute 'normal! gv""y'
   call clipper#auto_push()
   let @0 = reg0_save
-  let @" = unnamed_reg_save
+  let @@ = unnamed_reg_save
 
   if !stack_empty
     let s:stack_pos += 1
@@ -315,7 +321,7 @@ function! clipper#repeat_paste_x(count)
 endfunction
 
 
-function! clipper#do_operator(key)
+function! s:do_operator(key)
   let &operatorfunc = 'clipper#operator_' . a:key
   let s:operator = a:key
   call s:set_register()
@@ -324,7 +330,7 @@ function! clipper#do_operator(key)
 endfunction
 
 
-function! clipper#linewise(key)
+function! s:linewise(key)
   if s:operator ==# a:key
     return 'g@'
   endif
@@ -387,18 +393,11 @@ function! s:range(optype)
 endfunction
 
 
-function! clipper#pseudo_operator(key)
-  augroup ClipperOperatorGroup
-    autocmd!
-  augroup END
-
+function! s:pseudo_operator(key)
   call s:set_register()
 
   if s:used_register ==# ''
-    autocmd ClipperOperatorGroup InsertEnter * call s:insert_enter()
-    autocmd ClipperOperatorGroup CursorMoved * call s:cursor_moved()
-
-    let s:operator_start = 1
+    let s:pseudo_operator_start = 1
     let s:operator_insert_enter = 0
     let s:changedtick = b:changedtick
   endif
@@ -420,31 +419,36 @@ function! clipper#repeat_pseudo_operator(count)
 endfunction
 
 
-function! s:insert_enter()
-  if s:operator_start
-    if !s:operator_insert_enter
+function! s:initialize_pseudo_operator()
+  let s:pseudo_operator_start = 0
+  let s:operator_insert_enter = 0
+endfunction
+
+
+function! clipper#insert_enter()
+  if s:pseudo_operator_start
+    if s:changedtick != b:changedtick && !s:operator_insert_enter
       let s:operator_insert_enter = 1
     else
-      let s:operator_start = 0
-      let s:operator_insert_enter = 0
-      autocmd! ClipperOperatorGroup
+      " c<ESC>i
+      call s:initialize_pseudo_operator()
     endif
   endif
 endfunction
 
 
-function! s:cursor_moved()
-  if s:operator_start
-    if s:operator_insert_enter
-      call clipper#auto_push()
-      let s:operator_start = 0
-      let s:operator_insert_enter = 0
-      autocmd! ClipperOperatorGroup
-    elseif s:changedtick != b:changedtick
-      let s:operator_start = 0
-      let s:operator_insert_enter = 0
-      autocmd! ClipperOperatorGroup
-    endif
+function! clipper#cursor_movedi()
+  if s:pseudo_operator_start && s:operator_insert_enter
+    call clipper#auto_push()
+    call s:initialize_pseudo_operator()
+  endif
+endfunction
+
+
+function! clipper#cursor_moved()
+  if s:pseudo_operator_start
+    " c<ESC>j
+    call s:initialize_pseudo_operator()
   endif
 endfunction
 
@@ -508,8 +512,51 @@ function! s:update_register()
 endfunction
 
 
+let s:FUNCTION_TABLE = {
+      \ 'n_y'     : [ 's:do_operator', [ 'y' ] ],
+      \ 'o_y'     : [ 's:linewise', [ 'y' ] ],
+      \ 'n_d'     : [ 's:do_operator', [ 'd' ] ],
+      \ 'o_d'     : [ 's:linewise', [ 'd' ] ],
+      \ 'n_c'     : [ 's:pseudo_operator', [ 'c' ] ],
+      \ 's_<BS>'  : [ 's:yank_s', [ "\<Del>" ] ],
+      \ 'x_d'     : [ 's:yank_x', [ 'd' ] ],
+      \ 'n_D'     : [ 's:yank_n', [ 'D' ] ],
+      \ 'x_D'     : [ 's:yank_x', [ 'D' ] ],
+      \ 'n_<Del>' : [ 's:yank_n', [ 'x' ] ],
+      \ 's_<Del>' : [ 's:yank_s', [ "\<Del>" ] ],
+      \ 'x_<Del>' : [ 's:yank_x', [ "\<Del>" ] ],
+      \ 's_<C-h>' : [ 's:yank_s', [ "\<Del>" ] ],
+      \ 'n_x'     : [ 's:yank_n', [ 'x' ] ],
+      \ 'x_x'     : [ 's:yank_x', [ 'x' ] ],
+      \ 'n_X'     : [ 's:yank_n', [ 'X' ] ],
+      \ 'x_X'     : [ 's:yank_x', [ 'X' ] ],
+      \ 'x_y'     : [ 's:yank_x_y', [ 'y' ] ],
+      \ 'n_Y'     : [ 's:yank_n', [ 'Y' ] ],
+      \ 'x_Y'     : [ 's:yank_x_y', [ 'Y' ] ],
+      \ 'x_c'     : [ 's:insert_x', [ 'c' ] ],
+      \ 'n_C'     : [ 's:insert_n', [ 'C' ] ],
+      \ 'x_C'     : [ 's:insert_x', [ 'C' ] ],
+      \ 's_<CR>'  : [ 's:insert_s', [ "\<CR>" ] ],
+      \ 's_<NL>'  : [ 's:insert_s', [ "\<NL>" ] ],
+      \ 'n_s'     : [ 's:insert_n', [ 's' ] ],
+      \ 'x_s'     : [ 's:insert_x', [ 's' ] ],
+      \ 'n_S'     : [ 's:insert_n', [ 'S' ] ],
+      \ 'x_S'     : [ 's:insert_x', [ 'S' ] ],
+      \ 'n_p'     : [ 's:paste_n', [ 'p' ] ],
+      \ 'x_p'     : [ 's:paste_x', [ 'p' ] ],
+      \ 'n_P'     : [ 's:paste_n', [ 'P' ] ],
+      \ 'x_P'     : [ 's:paste_x', [ 'P' ] ],
+      \ 'n_gp'    : [ 's:paste_n', [ 'gp' ] ],
+      \ 'n_gP'    : [ 's:paste_n', [ 'gP' ] ],
+      \ 'n_[p'    : [ 's:paste_n', [ '[p' ] ],
+      \ 'n_]p'    : [ 's:paste_n', [ ']p' ] ],
+      \ 'n_[P'    : [ 's:paste_n', [ '[P' ] ],
+      \ 'n_]P'    : [ 's:paste_n', [ ']P' ] ],
+      \}
+
+
 let s:operator_insert_enter = 0
-let s:operator_start = 0
+let s:pseudo_operator_start = 0
 let s:stack = []
 let s:operator = ''
 let s:stack_pos = 0
@@ -525,6 +572,8 @@ endif
 if !exists('g:clipper_max_history')
   let g:clipper_max_history = 100
 endif
+
+
 
 
 " vim: expandtab shiftwidth=2 softtabstop=2 foldmethod=marker

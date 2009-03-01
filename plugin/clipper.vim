@@ -37,86 +37,98 @@ set cpoptions&vim
 let g:loaded_clipper = 1
 
 
+augroup ClipperOperatorGroup
+  autocmd!
+  autocmd InsertEnter * call clipper#insert_enter()
+  autocmd CursorMovedI * call clipper#cursor_movedi()
+  autocmd CursorMoved * call clipper#cursor_moved()
+augroup END
 
 
-" operator
 nnoremap <silent> <Plug>(clipper_y)
-      \ :<C-u>call clipper#do_operator('y')<CR>
+      \ :<C-u>call clipper#execute('n', 'y')<CR>
 onoremap <expr> <silent> <Plug>(clipper_y)
-      \ clipper#linewise('y')
+      \ clipper#execute('o', 'y')
 nnoremap <silent> <Plug>(clipper_d)
-      \ :<C-u>call clipper#do_operator('d')<CR>
+      \ :<C-u>call clipper#execute('n', 'd')<CR>
 onoremap <expr> <silent> <Plug>(clipper_d)
-      \ clipper#linewise('d')
+      \ clipper#execute('o', 'd')
 nnoremap <expr> <silent> <Plug>(clipper_c)
-      \ clipper#pseudo_operator('c')
+      \ clipper#execute('n', 'c')
 
 
-" yank or delete
 snoremap <silent> <Plug>(clipper_<BS>)
-      \ <C-g>:<C-u>call clipper#yank_s("\<lt>Del>")<CR>
+      \ <C-g>:<C-u>call clipper#execute('s', '<' . 'BS>')<CR>
 xnoremap <silent> <Plug>(clipper_d)
-      \ :<C-u>call clipper#yank_x('d')<CR>
+      \ :<C-u>call clipper#execute('x', 'd')<CR>
 nnoremap <silent> <Plug>(clipper_D)
-      \ :<C-u>call clipper#yank_n('D')<CR>
+      \ :<C-u>call clipper#execute('n', 'D')<CR>
 xnoremap <silent> <Plug>(clipper_D)
-      \ :<C-u>call clipper#yank_x('D')<CR>
+      \ :<C-u>call clipper#execute('x', 'D')<CR>
 nnoremap <silent> <Plug>(clipper_<Del>)
-      \ :<C-u>call clipper#yank_n('x')<CR>
+      \ :<C-u>call clipper#execute('n', '<' . 'Del>')<CR>
 snoremap <silent> <Plug>(clipper_<Del>)
-      \ <C-g>:<C-u>call clipper#yank_s("\<lt>Del>")<CR>
+      \ <C-g>:<C-u>call clipper#execute('s', '<' . 'Del>')<CR>
 xnoremap <silent> <Plug>(clipper_<Del>)
-      \ :<C-u>call clipper#yank_x("\<lt>Del>")<CR>
+      \ :<C-u>call clipper#execute('x', '<' . 'Del>')<CR>
 snoremap <silent> <Plug>(clipper_<C-h>)
-      \ <C-g>:<C-u>call clipper#yank_s("\<lt>Del>")<CR>
+      \ <C-g>:<C-u>call clipper#execute('s', '<' . 'C-h>')<CR>
 nnoremap <silent> <Plug>(clipper_x)
-      \ :<C-u>call clipper#yank_n('x')<CR>
+      \ :<C-u>call clipper#execute('n', 'x')<CR>
 xnoremap <silent> <Plug>(clipper_x)
-      \ :<C-u>call clipper#yank_x('x')<CR>
+      \ :<C-u>call clipper#execute('x', 'x')<CR>
 nnoremap <silent> <Plug>(clipper_X)
-      \ :<C-u>call clipper#yank_n('X')<CR>
+      \ :<C-u>call clipper#execute('n', 'X')<CR>
 xnoremap <silent> <Plug>(clipper_X)
-      \ :<C-u>call clipper#yank_x('X')<CR>
+      \ :<C-u>call clipper#execute('x', 'X')<CR>
 xnoremap <silent> <Plug>(clipper_y)
-      \ :<C-u>call clipper#yank_x_y('y')<CR>
+      \ :<C-u>call clipper#execute('x', 'y')<CR>
 nnoremap <silent> <Plug>(clipper_Y)
-      \ :<C-u>call clipper#yank_n('Y')<CR>
+      \ :<C-u>call clipper#execute('n', 'Y')<CR>
 xnoremap <silent> <Plug>(clipper_Y)
-      \ :<C-u>call clipper#yank_x_y('Y')<CR>
+      \ :<C-u>call clipper#execute('x', 'Y')<CR>
 
 
-" delete and insert
 xnoremap <silent> <Plug>(clipper_c)
-      \ :<C-u>call clipper#insert_x('c')<CR>
+      \ :<C-u>call clipper#execute('x', 'c')<CR>
 nnoremap <silent> <Plug>(clipper_C)
-      \ :<C-u>call clipper#insert_n('C')<CR>
+      \ :<C-u>call clipper#execute('n', 'C')<CR>
 xnoremap <silent> <Plug>(clipper_C)
-      \ :<C-u>call clipper#insert_x('C')<CR>
+      \ :<C-u>call clipper#execute('x', 'C')<CR>
 snoremap <silent> <Plug>(clipper_<CR>)
-      \ <C-g>:<C-u>call clipper#insert_s("\<lt>CR>")<CR>
+      \ <C-g>:<C-u>call clipper#execute('s', '<' . 'CR>')<CR>
 snoremap <silent> <Plug>(clipper_<NL>)
-      \ <C-g>:<C-u>call clipper#insert_s("\<lt>NL>")<CR>
+      \ <C-g>:<C-u>call clipper#execute('s', '<' . 'NL>')<CR>
 nnoremap <silent> <Plug>(clipper_s)
-      \ :<C-u>call clipper#insert_n('s')<CR>
+      \ :<C-u>call clipper#execute('n', 's')<CR>
 xnoremap <silent> <Plug>(clipper_s)
-      \ :<C-u>call clipper#insert_x('s')<CR>
+      \ :<C-u>call clipper#execute('x', 's')<CR>
 nnoremap <silent> <Plug>(clipper_S)
-      \ :<C-u>call clipper#insert_n('S')<CR>
+      \ :<C-u>call clipper#execute('n', 'S')<CR>
 xnoremap <silent> <Plug>(clipper_S)
-      \ :<C-u>call clipper#insert_x('S')<CR>
+      \ :<C-u>call clipper#execute('x', 'S')<CR>
 
 
-" paste
-nnoremap <expr> <silent> <Plug>(clipper_p) clipper#paste_n('p')
-xnoremap <silent> <Plug>(clipper_p) :<C-u>call clipper#paste_x('p')<CR>
-nnoremap <expr> <silent> <Plug>(clipper_P) clipper#paste_n('P')
-xnoremap <silent> <Plug>(clipper_P) :<C-u>call clipper#paste_x('P')<CR>
-nnoremap <expr> <silent> <Plug>(clipper_gp) clipper#paste_n('gp')
-nnoremap <expr> <silent> <Plug>(clipper_gP) clipper#paste_n('gP')
-nnoremap <expr> <silent> <Plug>(clipper_[p) clipper#paste_n('[p')
-nnoremap <expr> <silent> <Plug>(clipper_]p) clipper#paste_n(']p')
-nnoremap <expr> <silent> <Plug>(clipper_[P) clipper#paste_n('[P')
-nnoremap <expr> <silent> <Plug>(clipper_]P) clipper#paste_n(']P')
+nnoremap <expr> <silent> <Plug>(clipper_p)
+      \ clipper#execute('n', 'p')
+xnoremap <silent> <Plug>(clipper_p)
+      \ :<C-u>call clipper#execute('x', 'p')<CR>
+nnoremap <expr> <silent> <Plug>(clipper_P)
+      \ clipper#execute('n', 'P')
+xnoremap <silent> <Plug>(clipper_P)
+      \ :<C-u>call clipper#execute('x', 'P')<CR>
+nnoremap <expr> <silent> <Plug>(clipper_gp)
+      \ clipper#execute('n', 'gp')
+nnoremap <expr> <silent> <Plug>(clipper_gP)
+      \ clipper#execute('n', 'gP')
+nnoremap <expr> <silent> <Plug>(clipper_[p)
+      \ clipper#execute('n', '[p')
+nnoremap <expr> <silent> <Plug>(clipper_]p)
+      \ clipper#execute('n', ']p')
+nnoremap <expr> <silent> <Plug>(clipper_[P)
+      \ clipper#execute('n', '[P')
+nnoremap <expr> <silent> <Plug>(clipper_]P)
+      \ clipper#execute('n', ']P')
 
 
 " stack operation
@@ -130,7 +142,6 @@ function! s:default_key_mappings()
   nmap d <Plug>(clipper_d)
   omap d <Plug>(clipper_d)
   nmap c <Plug>(clipper_c)
-  "omap c <Plug>(clipper_c)
 
   xmap d     <Plug>(clipper_d)
   nmap D     <Plug>(clipper_D)
