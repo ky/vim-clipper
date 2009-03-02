@@ -1,7 +1,7 @@
 "-----------------------------------------------------------------------------
 " clipper
 " Author: ky
-" Version: 0.1.1
+" Version: 0.1.2
 " License: The MIT License
 " The MIT License {{{
 "
@@ -37,14 +37,6 @@ set cpoptions&vim
 let g:loaded_clipper = 1
 
 
-augroup ClipperOperatorGroup
-  autocmd!
-  autocmd InsertEnter * call clipper#insert_enter()
-  autocmd CursorMovedI * call clipper#cursor_movedi()
-  autocmd CursorMoved * call clipper#cursor_moved()
-augroup END
-
-
 nnoremap <silent> <Plug>(clipper_y)
       \ :<C-u>call clipper#execute('n', 'y')<CR>
 onoremap <expr> <silent> <Plug>(clipper_y)
@@ -53,12 +45,13 @@ nnoremap <silent> <Plug>(clipper_d)
       \ :<C-u>call clipper#execute('n', 'd')<CR>
 onoremap <expr> <silent> <Plug>(clipper_d)
       \ clipper#execute('o', 'd')
-nnoremap <expr> <silent> <Plug>(clipper_c)
-      \ clipper#execute('n', 'c')
+nnoremap <silent> <Plug>(clipper_c)
+      \ :<C-u>call clipper#define_operator_autocmd()<CR>
+      \:call clipper#execute('n', 'c')<CR>
 
 
 snoremap <silent> <Plug>(clipper_<BS>)
-      \ <C-g>:<C-u>call clipper#execute('s', '<' . 'BS>')<CR>
+      \ <C-g>:<C-u>call clipper#execute('s', '<lt>BS>')<CR>
 xnoremap <silent> <Plug>(clipper_d)
       \ :<C-u>call clipper#execute('x', 'd')<CR>
 nnoremap <silent> <Plug>(clipper_D)
@@ -66,13 +59,13 @@ nnoremap <silent> <Plug>(clipper_D)
 xnoremap <silent> <Plug>(clipper_D)
       \ :<C-u>call clipper#execute('x', 'D')<CR>
 nnoremap <silent> <Plug>(clipper_<Del>)
-      \ :<C-u>call clipper#execute('n', '<' . 'Del>')<CR>
+      \ :<C-u>call clipper#execute('n', '<lt>Del>')<CR>
 snoremap <silent> <Plug>(clipper_<Del>)
-      \ <C-g>:<C-u>call clipper#execute('s', '<' . 'Del>')<CR>
+      \ <C-g>:<C-u>call clipper#execute('s', '<lt>Del>')<CR>
 xnoremap <silent> <Plug>(clipper_<Del>)
-      \ :<C-u>call clipper#execute('x', '<' . 'Del>')<CR>
+      \ :<C-u>call clipper#execute('x', '<lt>Del>')<CR>
 snoremap <silent> <Plug>(clipper_<C-h>)
-      \ <C-g>:<C-u>call clipper#execute('s', '<' . 'C-h>')<CR>
+      \ <C-g>:<C-u>call clipper#execute('s', '<lt>C-h>')<CR>
 nnoremap <silent> <Plug>(clipper_x)
       \ :<C-u>call clipper#execute('n', 'x')<CR>
 xnoremap <silent> <Plug>(clipper_x)
@@ -96,9 +89,9 @@ nnoremap <silent> <Plug>(clipper_C)
 xnoremap <silent> <Plug>(clipper_C)
       \ :<C-u>call clipper#execute('x', 'C')<CR>
 snoremap <silent> <Plug>(clipper_<CR>)
-      \ <C-g>:<C-u>call clipper#execute('s', '<' . 'CR>')<CR>
+      \ <C-g>:<C-u>call clipper#execute('s', '<lt>CR>')<CR>
 snoremap <silent> <Plug>(clipper_<NL>)
-      \ <C-g>:<C-u>call clipper#execute('s', '<' . 'NL>')<CR>
+      \ <C-g>:<C-u>call clipper#execute('s', '<lt>NL>')<CR>
 nnoremap <silent> <Plug>(clipper_s)
       \ :<C-u>call clipper#execute('n', 's')<CR>
 xnoremap <silent> <Plug>(clipper_s)

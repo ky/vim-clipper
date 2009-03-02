@@ -94,6 +94,9 @@ g:clipper_no_default_key_mappings          *g:clipper_no_default_key_mappings*
 ==============================================================================
 5.変更履歴                                                 *clipper-changelog*
 
+0.1.2	2009-03-03
+	- cの動作を修正
+
 0.1.1	2009-02-27
 	- yやYの動作を修正
 	- g:clipper_max_history追加

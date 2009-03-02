@@ -1,7 +1,7 @@
 "-----------------------------------------------------------------------------
 " clipper
 " Author: ky
-" Version: 0.1.1
+" Version: 0.1.2
 " License: The MIT License {{{
 " The MIT License
 "
@@ -393,6 +393,16 @@ function! s:range(optype)
 endfunction
 
 
+function! clipper#define_operator_autocmd()
+  augroup ClipperOperatorGroup
+    autocmd!
+    autocmd InsertEnter * call clipper#insert_enter()
+    autocmd CursorMovedI * call clipper#cursor_movedi()
+    autocmd CursorMoved * call clipper#cursor_moved()
+  augroup END
+endfunction
+
+
 function! s:pseudo_operator(key)
   call s:set_register()
 
@@ -408,7 +418,7 @@ function! s:pseudo_operator(key)
         \ v:prevcount
         \)
 
-  return a:key
+  call feedkeys(a:key, 'n')
 endfunction
 
 
@@ -422,6 +432,7 @@ endfunction
 function! s:initialize_pseudo_operator()
   let s:pseudo_operator_start = 0
   let s:operator_insert_enter = 0
+  autocmd! ClipperOperatorGroup
 endfunction
 
 
