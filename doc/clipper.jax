@@ -61,15 +61,29 @@ http://github.com/ky/vim-clipper/
 ==============================================================================
 3.キーマッピング                                        *clipper-key-mappings*
 
-<Plug>(clipper_stack_next)                        *<Plug>(clipper_stack_next)*
-		1つ後の履歴を選択します。
+<Plug>(clipper_select)                                *<Plug>(clipper_select)*
+		選択ウィンドウを表示します。
+		デフォルトキーマッピングを適用するとノーマルモードの<C-p>に
+		割り当てられます。
+
+<Plug>(clipper_select_end)                        *<Plug>(clipper_select_end)*
+		選択ウィンドウを閉じます。
 		デフォルトキーマッピングを適用するとノーマルモードの<C-n>に
 		割り当てられます。
 
-<Plug>(clipper_stack_prev)                        *<Plug>(clipper_stack_prev)*
-		1つ前の履歴を選択します。
-		デフォルトキーマッピングを適用するとノーマルモードの<C-p>に
-		割り当てられます。
+<Plug>(clipper_select_win_p)		or      *<Plug>(clipper_select_win_p)*
+<Plug>(clipper_select_win_P)		or      *<Plug>(clipper_select_win_P)*
+<Plug>(clipper_select_win_gp)		or     *<Plug>(clipper_select_win_gp)*
+<Plug>(clipper_select_win_gP)		or     *<Plug>(clipper_select_win_gP)*
+<Plug>(clipper_select_win_[p)		or     *<Plug>(clipper_select_win_[p)*
+<Plug>(clipper_select_win_]p)		or     *<Plug>(clipper_select_win_]p)*
+<Plug>(clipper_select_win_[P)		or     *<Plug>(clipper_select_win_[P)*
+<Plug>(clipper_select_win_]P)                  *<Plug>(clipper_select_win_]P)*
+		カーソルのある行の履歴を貼り付けます。
+		デフォルトではp, P, gp, gP, [p, ]p, [P, ]Pに割り当てられ、
+		<Plug>(clipper_select_win_p)は<CR>にも割り当てられます。
+		選択ウィンドウ専用マッピングです。
+
 
 多いので省略(plugin/clipper.vimを参照)。
 
@@ -93,6 +107,10 @@ g:clipper_no_default_key_mappings          *g:clipper_no_default_key_mappings*
 
 ==============================================================================
 5.変更履歴                                                 *clipper-changelog*
+
+0.1.3	2009-03-08
+	- visualモードのy,Yの動作を修正
+	- 選択ウィンドウ追加
 
 0.1.2	2009-03-03
 	- cの動作を修正

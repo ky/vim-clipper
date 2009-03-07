@@ -1,7 +1,7 @@
 "-----------------------------------------------------------------------------
 " clipper
 " Author: ky
-" Version: 0.1.2
+" Version: 0.1.3
 " License: The MIT License {{{
 " The MIT License
 "
@@ -28,7 +28,7 @@
 "-----------------------------------------------------------------------------
 
 function! clipper#dump()
-  echo string(s:stack)
+  echo string(s:queue)
 endfunction
 
 
@@ -43,7 +43,7 @@ function! s:yank_n(key)
   let cnt = (v:count == v:count1 ? v:count : '')
 
   execute 'normal! ' . cnt . s:used_register . a:key
-  call clipper#auto_push()
+  call s:push()
 
   silent! call altrepeat#set_repeat_function(
         \ 'clipper#repeat_yank_n',
@@ -57,14 +57,14 @@ endfunction
 function! clipper#repeat_yank_n(count, key)
   call s:update_register()
   execute 'normal! ' . (a:count ? a:count : '') . s:used_register . a:key
-  call clipper#auto_push()
+  call s:push()
 endfunction
 
 
 function! s:yank_s(key)
   let reg0_save = @0
   execute "normal! gvy"
-  call clipper#auto_push()
+  call s:push()
   let @0 = reg0_save
 
   execute "normal! gv\<C-g>"
@@ -80,7 +80,7 @@ endfunction
 
 function! clipper#repeat_yank_s(count)
   execute 'normal! .'
-  call clipper#auto_push()
+  call s:push()
 endfunction
 
 
@@ -106,7 +106,7 @@ function! s:yank_x(key)
 
     let reg0_save = @0
     execute printf("normal! gv%s", yank_key)
-    call clipper#auto_push()
+    call s:push()
     let @0 = reg0_save
   else
     let use_reg = '"' . v:register
@@ -132,27 +132,51 @@ function! clipper#repeat_yank_x(count)
     let s:used_register = use_reg
   endif
   execute 'normal! ' . use_reg . '.'
-  call clipper#auto_push()
+  call s:push()
 endfunction
 
 
 function! s:yank_x_y(key)
-  let s:ve_save = &virtualedit
-  let &virtualedit = 'onemore'
-  let reselect = "\<Plug>(clipper_reselect_" .
-        \ (a:key ==# 'y' ? "char" : "line") . ")"
-  call s:do_operator('y')
-  call feedkeys(reselect, 'm')
+  "let s:ve_save = &virtualedit
+  "let &virtualedit = 'onemore'
+  "let reselect = "\<Plug>(clipper_reselect_" .
+  "      \ (a:key ==# 'y' ? "char" : "line") . ")"
+  "call s:do_operator('y')
+  "call feedkeys(reselect, 'm')
+  "call feedkeys(":call clipper#yank_x_y_after()\<CR>", 'n')
+  "if a:key ==# 'Y' && visualmode() !=# "\<C-v>"
+  "  call feedkeys('0', 'n')
+  "endif
+  let s:cpoptions = &cpoptions
+  set cpoptions+=y
+  call feedkeys('gv' . a:key, 'n')
   call feedkeys(":call clipper#yank_x_y_after()\<CR>", 'n')
-  if a:key ==# 'Y' && visualmode() !=# "\<C-v>"
-    call feedkeys('0', 'n')
-  endif
+  silent! call altrepeat#set_repeat_function(
+        \ 'clipper#repeat_yank_x_y',
+        \ 0,
+        \ v:prevcount
+        \)
 endfunction
 
 
 function! clipper#yank_x_y_after()
-  let &virtualedit = s:ve_save
-  unlet s:ve_save
+  "let &virtualedit = s:ve_save
+  "unlet s:ve_save
+  call s:push()
+  let &cpoptions = s:cpoptions
+endfunction
+
+
+function! clipper#repeat_yank_x_y(count)
+  let use_reg = ''
+  if !empty(s:used_register)
+    let use_reg = s:used_register
+  elseif v:register !=# '' && v:register !=# '"'
+    let use_reg = '"' . v:register
+    let s:used_register = use_reg
+  endif
+  execute 'normal! ' . use_reg . '.'
+  call s:push()
 endfunction
 
 
@@ -164,6 +188,7 @@ onoremap <silent> <Plug>(clipper_reselect_line)
 
 function! s:reselect_char()
   normal! gv
+  normal! $
 endfunction
 
 
@@ -186,7 +211,7 @@ function! s:insert_n(key)
   if v:register ==# '' || v:register ==# '"'
     let reg0_save = @0
     execute printf('normal! %s%s', cnt, dic[a:key])
-    call clipper#auto_push()
+    call s:push()
     let @0 = reg0_save
   else
     let use_reg = '"' . v:register
@@ -204,14 +229,14 @@ endfunction
 
 function! clipper#repeat_insert_n(count)
   execute printf('normal! %s.', (a:count ? a:count : ''))
-  call clipper#auto_push()
+  call s:push()
 endfunction
 
 
 function! s:insert_s(key)
   let reg0_save = @0
   execute "normal! gvy"
-  call clipper#auto_push()
+  call s:push()
   let @0 = reg0_save
 
   execute "normal! gv\<C-g>"
@@ -227,7 +252,7 @@ endfunction
 
 function! clipper#repeat_insert_s(count)
   execute 'normal! .'
-  call clipper#auto_push()
+  call s:push()
 endfunction
 
 
@@ -242,7 +267,7 @@ function! s:insert_x(key)
 
     let reg0_save = @0
     execute printf('normal! gv%s', yank_key)
-    call clipper#auto_push()
+    call s:push()
     let @0 = reg0_save
   else
     let use_reg = '"' . v:register
@@ -260,15 +285,15 @@ endfunction
 
 function! clipper#repeat_insert_x(count)
   execute 'normal! .'
-  call clipper#auto_push()
+  call s:push()
 endfunction
 
 
 function! s:setreg()
-  if (v:register ==# '"' || v:register ==# '') && !empty(s:stack)
-    let stack = s:stack[s:stack_pos]
-    call setreg('"', stack[0], stack[1])
-    let s:stack_pos = 0
+  if (v:register ==# '"' || v:register ==# '') && !empty(s:queue)
+    let queue = s:queue[s:queue_pos]
+    call setreg('"', queue[0], queue[1])
+    let s:queue_pos = 0
   endif
 endfunction
 
@@ -285,17 +310,17 @@ function! s:paste_x(key)
     let use_reg = '"' . v:register
     let s:used_register = use_reg
   endif
-  let stack_empty = empty(s:stack)
+  let queue_empty = empty(s:queue)
 
   let unnamed_reg_save = @@
   let reg0_save = @0
   execute 'normal! gv""y'
-  call clipper#auto_push()
+  call s:push()
   let @0 = reg0_save
   let @@ = unnamed_reg_save
 
-  if !stack_empty
-    let s:stack_pos += 1
+  if !queue_empty
+    let s:queue_pos += 1
     call s:setreg()
   endif
 
@@ -317,7 +342,7 @@ function! clipper#repeat_paste_x(count)
     let s:used_register = use_reg
   endif
   execute 'normal! ' . use_reg . '.'
-  call clipper#auto_push()
+  call s:push()
 endfunction
 
 
@@ -368,7 +393,7 @@ function! s:operator(optype, cmd)
 
   call s:update_register()
   execute printf('normal! %s%s%s', s:range(a:optype), s:used_register, a:cmd)
-  call clipper#auto_push()
+  call s:push()
 
   let &selection = selection_save
 
@@ -396,9 +421,9 @@ endfunction
 function! clipper#define_operator_autocmd()
   augroup ClipperOperatorGroup
     autocmd!
-    autocmd InsertEnter * call clipper#insert_enter()
-    autocmd CursorMovedI * call clipper#cursor_movedi()
-    autocmd CursorMoved * call clipper#cursor_moved()
+    autocmd InsertEnter * call s:insert_enter()
+    autocmd CursorMovedI * call s:cursor_movedi()
+    autocmd CursorMoved * call s:cursor_moved()
   augroup END
 endfunction
 
@@ -425,7 +450,7 @@ endfunction
 function! clipper#repeat_pseudo_operator(count)
   call s:update_register()
   execute 'normal! ' . (a:count ? a:count : '') . s:used_register . '.'
-  call clipper#auto_push()
+  call s:push()
 endfunction
 
 
@@ -436,7 +461,7 @@ function! s:initialize_pseudo_operator()
 endfunction
 
 
-function! clipper#insert_enter()
+function! s:insert_enter()
   if s:pseudo_operator_start
     if s:changedtick != b:changedtick && !s:operator_insert_enter
       let s:operator_insert_enter = 1
@@ -448,15 +473,15 @@ function! clipper#insert_enter()
 endfunction
 
 
-function! clipper#cursor_movedi()
+function! s:cursor_movedi()
   if s:pseudo_operator_start && s:operator_insert_enter
-    call clipper#auto_push()
+    call s:push()
     call s:initialize_pseudo_operator()
   endif
 endfunction
 
 
-function! clipper#cursor_moved()
+function! s:cursor_moved()
   if s:pseudo_operator_start
     " c<ESC>j
     call s:initialize_pseudo_operator()
@@ -464,37 +489,142 @@ function! clipper#cursor_moved()
 endfunction
 
 
-function! clipper#auto_push()
+function! s:push()
   if (v:register ==# '"' || v:register ==# '') && g:clipper_max_history > 0
-    if len(s:stack) >= g:clipper_max_history
-      call remove(s:stack, g:clipper_max_history -1, -1)
+    if len(s:queue) >= g:clipper_max_history
+      call remove(s:queue, g:clipper_max_history -1, -1)
     endif
     let s = strpart(getreg('"'), 0, g:clipper_max_text_length)
-    call insert(s:stack, [s, getregtype('"')], 0)
+    call insert(s:queue, [s, getregtype('"')], 0)
   endif
   return ''
 endfunction
 
 
-function! clipper#stack_move(type)
-  redraw
-  if empty(s:stack)
+function! clipper#set_queue_pos(line_num)
+  if empty(s:queue)
+    redraw
     echohl ErrorMsg
-    echomsg '[clipper] stack is empty.'
+    echomsg '[clipper] queue is empty.'
+    echohl None
+    return
+  endif
+  let queue_pos = a:line_num - 1
+  if queue_pos >= 0
+    let s:queue_pos = queue_pos
+  endif
+endfunction
+
+
+function! clipper#queue_move(type)
+  redraw
+  if empty(s:queue)
+    echohl ErrorMsg
+    echomsg '[clipper] queue is empty.'
     echohl None
     return
   endif
 
   if a:type < 0
-    if s:stack_pos < len(s:stack) - 1
-      let s:stack_pos += 1
+    if s:queue_pos < len(s:queue) - 1
+      let s:queue_pos += 1
     endif
   elseif a:type > 0
-    if s:stack_pos
-      let s:stack_pos -= 1
+    if s:queue_pos
+      let s:queue_pos -= 1
     endif
   endif
-  echon 'selected clipper stack #' . s:stack_pos
+  echon 'selected clipper queue #' . s:queue_pos
+endfunction
+
+
+function! clipper#select()
+  if empty(s:queue)
+    redraw
+    echohl ErrorMsg
+    echomsg '[clipper] queue is empty.'
+    echohl None
+    return
+  endif
+
+  if s:winnr != -1
+    return
+  endif
+
+  let s:winnr = winnr()
+
+  if bufexists(s:bufnr)
+    botright split
+    silent! execute s:bufnr . 'buffer'
+  else
+    botright new
+    let s:bufnr = bufnr('%')
+  endif
+
+  setlocal bufhidden=hide
+  setlocal nobuflisted
+  setlocal buftype=nofile
+  setlocal noswapfile
+  setlocal filetype=clipper
+  setlocal nowrap
+  setlocal modifiable
+  execute 'silent! file [clipper]'
+
+  augroup ClipperSelectWindowAugroup
+    autocmd!
+    autocmd! BufLeave <buffer> call clipper#select_end()
+    autocmd! WinLeave <buffer> call clipper#select_end()
+  augroup END
+
+  let line_num = 1
+  let lines = ''
+  let format = '%' . len(string(g:clipper_max_history)) . "d: %s\n"
+  for i in s:queue
+    let lines .= printf(format, line_num, strtrans(i[0]))
+    let line_num += 1
+  endfor
+
+  silent! %delete _
+  0put =lines
+  silent! $delete _
+
+  setlocal nomodifiable
+
+  normal! gg
+
+  call s:select_win_mappings()
+endfunction
+
+
+function! clipper#select_end()
+  autocmd! ClipperSelectWindowAugroup
+  if s:winnr != -1
+    close
+    execute s:winnr . 'wincmd w'
+    let s:winnr = -1
+  endif
+endfunction
+
+
+function! s:select_win_mappings()
+  nnoremap <silent> <Plug>(clipper_select_end)
+        \ :<C-u>call clipper#select_end()<CR>
+  nnoremap <silent> <Plug>(clipper_set_queue_pos)
+        \ :<C-u>call clipper#set_queue_pos(line('.'))<CR>
+  for x in [ 'p' , 'P', 'gp', 'gP', '[p', ']p', '[P', ']P' ]
+    execute printf(
+          \ 'nmap <buffer> <silent> <Plug>(clipper_select_win_%s) ' .
+          \ '<Plug>(clipper_set_queue_pos)' .
+          \ '<Plug>(clipper_select_end)' .
+          \ '<Plug>(clipper_%s)',
+          \ x, x)
+    if !g:clipper_no_default_key_mappings
+      execute printf('nmap <buffer> %s <Plug>(clipper_select_win_%s)', x, x)
+    endif
+  endfor
+  if !g:clipper_no_default_key_mappings
+    nmap <buffer> <CR> <Plug>(clipper_select_win_p)
+  endif
 endfunction
 
 
@@ -566,11 +696,13 @@ let s:FUNCTION_TABLE = {
       \}
 
 
+let s:bufnr = -1
+let s:winnr = -1
 let s:operator_insert_enter = 0
 let s:pseudo_operator_start = 0
-let s:stack = []
+let s:queue = []
 let s:operator = ''
-let s:stack_pos = 0
+let s:queue_pos = 0
 let s:used_register = ''
 let s:changedtick = -1
 

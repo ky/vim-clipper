@@ -1,7 +1,7 @@
 "-----------------------------------------------------------------------------
 " clipper
 " Author: ky
-" Version: 0.1.2
+" Version: 0.1.3
 " License: The MIT License
 " The MIT License {{{
 "
@@ -34,7 +34,12 @@ endif
 let s:cpoptions = &cpoptions
 set cpoptions&vim
 
+
 let g:loaded_clipper = 1
+
+if !exists('g:clipper_no_default_key_mappings')
+  let g:clipper_no_default_key_mappings = 0
+endif
 
 
 nnoremap <silent> <Plug>(clipper_y)
@@ -124,9 +129,11 @@ nnoremap <expr> <silent> <Plug>(clipper_]P)
       \ clipper#execute('n', ']P')
 
 
-" stack operation
-nnoremap <expr> <silent> <Plug>(clipper_stack_prev) clipper#stack_move(-1)
-nnoremap <expr> <silent> <Plug>(clipper_stack_next) clipper#stack_move(1)
+" queue operation
+nnoremap <silent> <Plug>(clipper_select)
+      \ :<C-u>call clipper#select()<CR>
+nnoremap <silent> <Plug>(clipper_select_end)
+      \ :<C-u>call clipper#select_end()<CR>
 
 
 function! s:default_key_mappings()
@@ -173,8 +180,8 @@ function! s:default_key_mappings()
   nmap [P <Plug>(clipper_[P)
   nmap ]P <Plug>(clipper_]P)
 
-  nmap <C-p> <Plug>(clipper_stack_prev)
-  nmap <C-n> <Plug>(clipper_stack_next)
+  nmap <C-p> <Plug>(clipper_select)
+  nmap <C-n> <Plug>(clipper_select_end)
 endfunction
 
 
@@ -182,8 +189,7 @@ command! -bar -nargs=0 ClipperDump call clipper#dump()
 command! -bar -nargs=0 ClipperDefaultKeyMappings call s:default_key_mappings()
 
 
-if !exists('g:clipper_no_default_key_mappings') ||
-      \ !g:clipper_no_default_key_mappings
+if !g:clipper_no_default_key_mappings
   ClipperDefaultKeyMappings
 endif
 
