@@ -1,7 +1,7 @@
 *clipper.txt*      無名レジスタの履歴をとる/履歴から貼り付け
 
 Author: ky
-Version: 0.1.1
+Version: 0.1.4
 License: The MIT License {{{
 The MIT License
 
@@ -42,6 +42,7 @@ THE SOFTWARE.
 
 無名レジスタの履歴をとり、貼り付けできるようにするプラグインです。
 altrepeatプラグインを導入することで|.|コマンドでも履歴をとれるようになります。
+仕様として、yコマンドも|.|コマンドで繰り返し実行されます。
 
 altrepeatプラグイン:
 http://github.com/ky/vim-altrepeat/
@@ -68,8 +69,6 @@ http://github.com/ky/vim-clipper/
 
 <Plug>(clipper_select_end)                        *<Plug>(clipper_select_end)*
 		選択ウィンドウを閉じます。
-		デフォルトキーマッピングを適用するとノーマルモードの<C-n>に
-		割り当てられます。
 
 <Plug>(clipper_select_win_p)		or      *<Plug>(clipper_select_win_p)*
 <Plug>(clipper_select_win_P)		or      *<Plug>(clipper_select_win_P)*
@@ -107,6 +106,9 @@ g:clipper_no_default_key_mappings          *g:clipper_no_default_key_mappings*
 
 ==============================================================================
 5.変更履歴                                                 *clipper-changelog*
+
+0.1.4	2009-03-11
+	- 選択ウィンドウのデフォルトマッピング変更
 
 0.1.3	2009-03-08
 	- visualモードのy,Yの動作を修正

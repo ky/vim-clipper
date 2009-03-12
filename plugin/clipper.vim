@@ -1,7 +1,7 @@
 "-----------------------------------------------------------------------------
 " clipper
 " Author: ky
-" Version: 0.1.3
+" Version: 0.1.4
 " License: The MIT License
 " The MIT License {{{
 "
@@ -181,7 +181,6 @@ function! s:default_key_mappings()
   nmap ]P <Plug>(clipper_]P)
 
   nmap <C-p> <Plug>(clipper_select)
-  nmap <C-n> <Plug>(clipper_select_end)
 endfunction
 
 

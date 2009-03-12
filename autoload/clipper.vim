@@ -1,7 +1,7 @@
 "-----------------------------------------------------------------------------
 " clipper
 " Author: ky
-" Version: 0.1.3
+" Version: 0.1.4
 " License: The MIT License {{{
 " The MIT License
 "
@@ -137,16 +137,6 @@ endfunction
 
 
 function! s:yank_x_y(key)
-  "let s:ve_save = &virtualedit
-  "let &virtualedit = 'onemore'
-  "let reselect = "\<Plug>(clipper_reselect_" .
-  "      \ (a:key ==# 'y' ? "char" : "line") . ")"
-  "call s:do_operator('y')
-  "call feedkeys(reselect, 'm')
-  "call feedkeys(":call clipper#yank_x_y_after()\<CR>", 'n')
-  "if a:key ==# 'Y' && visualmode() !=# "\<C-v>"
-  "  call feedkeys('0', 'n')
-  "endif
   let s:cpoptions = &cpoptions
   set cpoptions+=y
   call feedkeys('gv' . a:key, 'n')
@@ -160,8 +150,6 @@ endfunction
 
 
 function! clipper#yank_x_y_after()
-  "let &virtualedit = s:ve_save
-  "unlet s:ve_save
   call s:push()
   let &cpoptions = s:cpoptions
 endfunction
@@ -177,26 +165,6 @@ function! clipper#repeat_yank_x_y(count)
   endif
   execute 'normal! ' . use_reg . '.'
   call s:push()
-endfunction
-
-
-onoremap <silent> <Plug>(clipper_reselect_char)
-      \ :<C-u>call <SID>reselect_char()<CR>
-onoremap <silent> <Plug>(clipper_reselect_line)
-      \ :<C-u>call <SID>reselect_line(visualmode())<CR>
-
-
-function! s:reselect_char()
-  normal! gv
-  normal! $
-endfunction
-
-
-function! s:reselect_line(visual)
-  normal! gv
-  if a:visual ==# 'v'
-    normal! V
-  endif
 endfunction
 
 
@@ -559,6 +527,7 @@ function! clipper#select()
   else
     botright new
     let s:bufnr = bufnr('%')
+    call s:select_win_mappings()
   endif
 
   setlocal bufhidden=hide
@@ -591,8 +560,6 @@ function! clipper#select()
   setlocal nomodifiable
 
   normal! gg
-
-  call s:select_win_mappings()
 endfunction
 
 
@@ -607,8 +574,6 @@ endfunction
 
 
 function! s:select_win_mappings()
-  nnoremap <silent> <Plug>(clipper_select_end)
-        \ :<C-u>call clipper#select_end()<CR>
   nnoremap <silent> <Plug>(clipper_set_queue_pos)
         \ :<C-u>call clipper#set_queue_pos(line('.'))<CR>
   for x in [ 'p' , 'P', 'gp', 'gP', '[p', ']p', '[P', ']P' ]
@@ -624,6 +589,7 @@ function! s:select_win_mappings()
   endfor
   if !g:clipper_no_default_key_mappings
     nmap <buffer> <CR> <Plug>(clipper_select_win_p)
+    nnoremap <buffer> <Esc> <C-w>w
   endif
 endfunction
 
