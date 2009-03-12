@@ -589,7 +589,7 @@ function! s:select_win_mappings()
   endfor
   if !g:clipper_no_default_key_mappings
     nmap <buffer> <CR> <Plug>(clipper_select_win_p)
-    nnoremap <buffer> <Esc> <C-w>w
+    nnoremap <buffer> <Esc> <C-w>p
   endif
 endfunction
 
