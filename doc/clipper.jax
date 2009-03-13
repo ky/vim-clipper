@@ -1,7 +1,7 @@
 *clipper.txt*      無名レジスタの履歴をとる/履歴から貼り付け
 
 Author: ky
-Version: 0.1.4
+Version: 0.1.5
 License: The MIT License {{{
 The MIT License
 
@@ -81,8 +81,16 @@ http://github.com/ky/vim-clipper/
 		カーソルのある行の履歴を貼り付けます。
 		デフォルトではp, P, gp, gP, [p, ]p, [P, ]Pに割り当てられ、
 		<Plug>(clipper_select_win_p)は<CR>にも割り当てられます。
-		選択ウィンドウ専用マッピングです。
-
+		選択ウィンドウのバッファのみで使用できるマッピングです。
+		デフォルトのマッピングを適用しない場合、autocmdで設定
+		できます(選択ウィンドウのfiletypeは "clipperw" です）。
+		例： >
+		    " 自分でキーマップを行う
+		    let g:clipper_no_default_key_mappings = 1
+		    " filetypeがclipperwの場合、キーマップを行う
+		    autocmd  FileType clipperw
+		          \ nmap <buffer> p <Plug>(clipper_select_win_p)
+<
 
 多いので省略(plugin/clipper.vimを参照)。
 
@@ -106,6 +114,11 @@ g:clipper_no_default_key_mappings          *g:clipper_no_default_key_mappings*
 
 ==============================================================================
 5.変更履歴                                                 *clipper-changelog*
+
+0.1.5	2009-03-14
+	- 選択ウィンドウのデフォルトマッピングを変更
+	- 選択ウィンドウのfiletypeを変更
+	- 選択ウィンドウの表示を変更
 
 0.1.4	2009-03-11
 	- 選択ウィンドウのデフォルトマッピング変更

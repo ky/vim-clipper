@@ -1,7 +1,7 @@
 "-----------------------------------------------------------------------------
 " clipper
 " Author: ky
-" Version: 0.1.4
+" Version: 0.1.5
 " License: The MIT License {{{
 " The MIT License
 "
@@ -534,10 +534,11 @@ function! clipper#select()
   setlocal nobuflisted
   setlocal buftype=nofile
   setlocal noswapfile
-  setlocal filetype=clipper
+  setlocal filetype=clipperw
   setlocal nowrap
   setlocal modifiable
-  execute 'silent! file [clipper]'
+  setlocal number
+  execute 'silent! file [clipperw]'
 
   augroup ClipperSelectWindowAugroup
     autocmd!
@@ -545,12 +546,9 @@ function! clipper#select()
     autocmd! WinLeave <buffer> call clipper#select_end()
   augroup END
 
-  let line_num = 1
   let lines = ''
-  let format = '%' . len(string(g:clipper_max_history)) . "d: %s\n"
   for i in s:queue
-    let lines .= printf(format, line_num, strtrans(i[0]))
-    let line_num += 1
+    let lines .= tr(i[0], "\n", "\r") . "\n"
   endfor
 
   silent! %delete _
@@ -589,7 +587,7 @@ function! s:select_win_mappings()
   endfor
   if !g:clipper_no_default_key_mappings
     nmap <buffer> <CR> <Plug>(clipper_select_win_p)
-    nnoremap <buffer> <Esc> <C-w>p
+    nmap <buffer> <C-c> <Plug>(clipper_select_end)
   endif
 endfunction
 
