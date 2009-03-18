@@ -152,6 +152,7 @@ endfunction
 function! clipper#yank_x_y_after()
   call s:push()
   let &cpoptions = s:cpoptions
+  unlet s:cpoptions
 endfunction
 
 
